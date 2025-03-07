@@ -13,7 +13,7 @@ const Footer: React.FC = () => {
           </div>
           
           <div className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} • Designed with precision
+            &copy; {new Date().getFullYear()} • By Armando Maynez
           </div>
         </div>
       </div>
