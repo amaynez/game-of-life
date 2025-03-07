@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 interface GameOfLifeProps {
@@ -22,14 +21,15 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameRef = useRef<number | null>(null);
   const lastUpdateTimeRef = useRef<number>(0);
+  const isDrawingRef = useRef<boolean>(false);
+  const lastCellRef = useRef<{x: number, y: number} | null>(null);
+  const drawModeRef = useRef<boolean | null>(null);
   
-  // Initialize the grid
   useEffect(() => {
     const initialGrid = Array(gridSize).fill(null).map(() => 
       Array(gridSize).fill(false)
     );
     
-    // Apply initial pattern if provided
     if (initialPattern) {
       const offsetX = Math.floor((gridSize - initialPattern.length) / 2);
       const offsetY = Math.floor((gridSize - initialPattern[0].length) / 2);
@@ -47,7 +47,6 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
     setGrid(initialGrid);
   }, [gridSize, initialPattern]);
   
-  // Calculate next generation based on Game of Life rules
   const computeNextGeneration = useCallback(() => {
     setGrid(currentGrid => {
       const newGrid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(false));
@@ -57,7 +56,6 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
         for (let j = 0; j < gridSize; j++) {
           let neighbors = 0;
           
-          // Check all 8 neighbors
           for (let x = -1; x <= 1; x++) {
             for (let y = -1; y <= 1; y++) {
               if (x === 0 && y === 0) continue;
@@ -71,12 +69,9 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
             }
           }
           
-          // Apply Conway's rules
           if (currentGrid[i][j]) {
-            // Any live cell with 2 or 3 live neighbors survives
             newGrid[i][j] = neighbors === 2 || neighbors === 3;
           } else {
-            // Any dead cell with exactly 3 live neighbors becomes alive
             newGrid[i][j] = neighbors === 3;
           }
           
@@ -92,21 +87,14 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
     });
   }, [gridSize]);
   
-  // Handle cell clicking (toggle state)
-  const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const x = Math.floor((event.clientX - rect.left) / cellSize);
-    const y = Math.floor((event.clientY - rect.top) / cellSize);
-    
+  const toggleCell = useCallback((x: number, y: number, forcedState?: boolean) => {
     if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
       setGrid(currentGrid => {
         const newGrid = [...currentGrid.map(row => [...row])];
-        newGrid[y][x] = !newGrid[y][x];
         
-        // Update population when toggling cells
+        const newState = forcedState !== undefined ? forcedState : !newGrid[y][x];
+        newGrid[y][x] = newState;
+        
         let aliveCount = 0;
         for (let i = 0; i < gridSize; i++) {
           for (let j = 0; j < gridSize; j++) {
@@ -118,9 +106,56 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
         return newGrid;
       });
     }
-  }, [cellSize, gridSize]);
+  }, [gridSize]);
   
-  // Draw the grid on canvas
+  const handleCanvasMouseDown = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+    event.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.floor((event.clientX - rect.left) / cellSize);
+    const y = Math.floor((event.clientY - rect.top) / cellSize);
+    
+    if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
+      isDrawingRef.current = true;
+      drawModeRef.current = !grid[y][x];
+      toggleCell(x, y, drawModeRef.current);
+      lastCellRef.current = { x, y };
+    }
+  }, [cellSize, gridSize, grid, toggleCell]);
+  
+  const handleCanvasMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawingRef.current) return;
+    
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.floor((event.clientX - rect.left) / cellSize);
+    const y = Math.floor((event.clientY - rect.top) / cellSize);
+    
+    if (lastCellRef.current && (lastCellRef.current.x !== x || lastCellRef.current.y !== y)) {
+      toggleCell(x, y, drawModeRef.current);
+      lastCellRef.current = { x, y };
+    }
+  }, [cellSize, toggleCell]);
+  
+  const handleCanvasMouseUp = useCallback(() => {
+    isDrawingRef.current = false;
+    lastCellRef.current = null;
+    drawModeRef.current = null;
+  }, []);
+  
+  const handleCanvasMouseLeave = useCallback(() => {
+    isDrawingRef.current = false;
+    lastCellRef.current = null;
+    drawModeRef.current = null;
+  }, []);
+  
+  const handleCanvasClick = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+  }, []);
+  
   const drawGrid = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -128,21 +163,17 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Draw cells
     for (let i = 0; i < gridSize; i++) {
       for (let j = 0; j < gridSize; j++) {
         const x = j * cellSize;
         const y = i * cellSize;
         
         if (grid[i][j]) {
-          // Alive cell
           ctx.fillStyle = 'hsl(var(--primary))';
           ctx.fillRect(x, y, cellSize - 1, cellSize - 1);
         } else {
-          // Dead cell - just draw a subtle border
           ctx.fillStyle = 'hsla(var(--background), 0.8)';
           ctx.fillRect(x, y, cellSize - 1, cellSize - 1);
           ctx.strokeStyle = 'hsla(var(--primary), 0.05)';
@@ -152,7 +183,6 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
     }
   }, [grid, gridSize, cellSize]);
   
-  // Animation loop
   const animate = useCallback((timestamp: number) => {
     if (!lastUpdateTimeRef.current) {
       lastUpdateTimeRef.current = timestamp;
@@ -160,7 +190,6 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
     
     const elapsed = timestamp - lastUpdateTimeRef.current;
     
-    // Update at specified speed
     if (elapsed > speed) {
       if (isRunning) {
         computeNextGeneration();
@@ -172,7 +201,6 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
     animationFrameRef.current = requestAnimationFrame(animate);
   }, [computeNextGeneration, drawGrid, isRunning, speed]);
   
-  // Start/Stop animation based on isRunning prop
   useEffect(() => {
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
@@ -187,10 +215,8 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
     };
   }, [animate]);
   
-  // Calculate actual canvas size
   const canvasSize = gridSize * cellSize;
   
-  // Count population on initial render
   useEffect(() => {
     let count = 0;
     for (let i = 0; i < grid.length; i++) {
@@ -212,6 +238,10 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
         width={canvasSize}
         height={canvasSize}
         onClick={handleCanvasClick}
+        onMouseDown={handleCanvasMouseDown}
+        onMouseMove={handleCanvasMouseMove}
+        onMouseUp={handleCanvasMouseUp}
+        onMouseLeave={handleCanvasMouseLeave}
         className="bg-background/30 rounded-lg shadow-inner cursor-pointer"
       />
     </div>
