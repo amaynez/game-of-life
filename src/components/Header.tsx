@@ -14,8 +14,18 @@ const Header: React.FC = () => {
       const headerHeight = document.querySelector('header')?.offsetHeight || 0;
       
       // Calculate position with offset
-      const elementPosition = targetElement.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerHeight - 20; // Extra 20px padding
+      let offsetPosition;
+      
+      // For patterns section, add extra offset for the subheading
+      if (targetId === "patterns") {
+        const extraOffset = 30; // Additional offset for the subheading
+        const elementPosition = targetElement.getBoundingClientRect().top;
+        offsetPosition = elementPosition + window.pageYOffset - headerHeight - 20 - extraOffset;
+      } else {
+        // Standard offset for other sections
+        const elementPosition = targetElement.getBoundingClientRect().top;
+        offsetPosition = elementPosition + window.pageYOffset - headerHeight - 20;
+      }
       
       window.scrollTo({
         top: offsetPosition,
