@@ -109,7 +109,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Contact
 
 Armando Maynez - papyri-brushed-8n@icloud.com
-Project Link: [https://github.com/amaynez/life-experience-hub](https://github.com/amaynez/life-experience-hub)
+Project Link: [https://github.com/amaynez/game-of-life](https://github.com/amaynez/game-of-life)
 
 <!-- Add any other relevant sections, such as acknowledgments, future enhancements, etc. -->
 ## I want to use a custom domain - is that possible?
