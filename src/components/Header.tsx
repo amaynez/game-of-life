@@ -70,7 +70,7 @@ const Header: React.FC = () => {
           </li>
           <li>
             <Button variant="ghost" size="icon" className="hover-scale">
-              <a href="https://github.com/conwaylife/conwaylife.com" target="_blank" rel="noopener noreferrer">
+              <a href="https://github.com/amaynez/game-of-life" target="_blank" rel="noopener noreferrer">
                 <Github size={20} />
               </a>
             </Button>
