@@ -4,6 +4,26 @@ import { Button } from '@/components/ui/button';
 import { Github } from 'lucide-react';
 
 const Header: React.FC = () => {
+  // Function to handle smooth scrolling with offset
+  const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+    e.preventDefault();
+    const targetElement = document.getElementById(targetId);
+    
+    if (targetElement) {
+      // Get header height to use as offset
+      const headerHeight = document.querySelector('header')?.offsetHeight || 0;
+      
+      // Calculate position with offset
+      const elementPosition = targetElement.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerHeight - 20; // Extra 20px padding
+      
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass-panel py-4 px-6 flex justify-between items-center animate-fade-in">
       <div className="flex items-center space-x-2">
@@ -12,17 +32,29 @@ const Header: React.FC = () => {
       <nav>
         <ul className="flex items-center space-x-6">
           <li>
-            <a href="#about" className="story-link text-sm font-medium">
+            <a 
+              href="#about" 
+              className="story-link text-sm font-medium"
+              onClick={(e) => handleAnchorClick(e, "about")}
+            >
               About
             </a>
           </li>
           <li>
-            <a href="#patterns" className="story-link text-sm font-medium">
+            <a 
+              href="#patterns" 
+              className="story-link text-sm font-medium"
+              onClick={(e) => handleAnchorClick(e, "patterns")}
+            >
               Patterns
             </a>
           </li>
           <li>
-            <a href="#rules" className="story-link text-sm font-medium">
+            <a 
+              href="#rules" 
+              className="story-link text-sm font-medium"
+              onClick={(e) => handleAnchorClick(e, "rules")}
+            >
               Rules
             </a>
           </li>
