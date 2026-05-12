@@ -8,6 +8,7 @@ interface ControlsProps {
   onToggleRunning: () => void;
   onClear: () => void;
   onRandom: () => void;
+  onStep?: () => void;
   onSpeedChange: (value: number) => void;
   speed: number;
 }
@@ -17,6 +18,7 @@ const Controls: React.FC<ControlsProps> = ({
   onToggleRunning,
   onClear,
   onRandom,
+  onStep,
   onSpeedChange,
   speed,
 }) => {
@@ -53,7 +55,7 @@ const Controls: React.FC<ControlsProps> = ({
         </Button>
         
         <Button
-          onClick={() => {}}
+          onClick={onStep}
           variant="outline"
           className="flex items-center justify-center gap-2 hover-scale button-hover-effect h-12"
         >

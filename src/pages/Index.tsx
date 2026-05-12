@@ -55,6 +55,7 @@ const Index = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [speed, setSpeed] = useState(100);
   const [currentPattern, setCurrentPattern] = useState<boolean[][] | undefined>(undefined);
+  const stepFnRef = React.useRef<(() => void) | null>(null);
   const [gridSize, setGridSize] = useState(50);
   const [cellSize, setCellSize] = useState(12);
   
@@ -68,9 +69,18 @@ const Index = () => {
   const handleToggleRunning = useCallback(() => {
     setIsRunning(prev => !prev);
   }, []);
+
+  const handleStep = useCallback(() => {
+    if (stepFnRef.current) {
+      stepFnRef.current();
+    }
+  }, []);
+
+  const handleSetStepFn = useCallback((fn: () => void) => {
+    stepFnRef.current = fn;
+  }, []);
   
   const handleClear = useCallback(() => {
-    setCurrentPattern(undefined);
     setIsRunning(false);
     
     // Create empty grid
@@ -117,6 +127,7 @@ const Index = () => {
               initialPattern={currentPattern}
               speed={speed}
               isRunning={isRunning}
+              onStep={handleSetStepFn}
             />
           </div>
           
@@ -126,6 +137,7 @@ const Index = () => {
               onToggleRunning={handleToggleRunning}
               onClear={handleClear}
               onRandom={handleRandom}
+              onStep={handleStep}
               onSpeedChange={setSpeed}
               speed={speed}
             />

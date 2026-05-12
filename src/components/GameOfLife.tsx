@@ -10,6 +10,7 @@ interface GameOfLifeProps {
   initialPattern?: boolean[][];
   speed?: number;
   isRunning?: boolean;
+  onStep?: (fn: () => void) => void;
 }
 
 const GameOfLife: React.FC<GameOfLifeProps> = ({
@@ -18,6 +19,7 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
   initialPattern,
   speed = 100,
   isRunning = false,
+  onStep,
 }) => {
   const [grid, setGrid] = useState<boolean[][]>([]);
   const [generation, setGeneration] = useState(0);
@@ -46,28 +48,28 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
     }
     
     setGrid(initialGrid);
+    setGeneration(0);
   }, [gridSize, initialPattern]);
   
   // Compute next generation
   const computeNext = useCallback(() => {
     setGrid(currentGrid => {
-      const { newGrid, aliveCount } = computeNextGeneration(currentGrid, gridSize);
-      setPopulation(aliveCount);
-      setGeneration(gen => gen + 1);
+      const { newGrid } = computeNextGeneration(currentGrid, gridSize);
       return newGrid;
     });
+    setGeneration(gen => gen + 1);
   }, [gridSize]);
   
   // Toggle cell state
   const toggleCell = useCallback((x: number, y: number, forcedState?: boolean) => {
     if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
       setGrid(currentGrid => {
-        const newGrid = [...currentGrid.map(row => [...row])];
+        const newGrid = [...currentGrid];
+        const newRow = [...newGrid[y]];
         
-        const newState = forcedState !== undefined ? forcedState : !newGrid[y][x];
-        newGrid[y][x] = newState;
-        
-        setPopulation(countAlive(newGrid));
+        const newState = forcedState !== undefined ? forcedState : !newRow[x];
+        newRow[x] = newState;
+        newGrid[y] = newRow;
         
         return newGrid;
       });
@@ -76,6 +78,8 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
   
   // Animation loop
   const animate = useCallback((timestamp: number) => {
+    if (!isRunning) return;
+
     if (!lastUpdateTimeRef.current) {
       lastUpdateTimeRef.current = timestamp;
     }
@@ -83,9 +87,7 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
     const elapsed = timestamp - lastUpdateTimeRef.current;
     
     if (elapsed > speed) {
-      if (isRunning) {
-        computeNext();
-      }
+      computeNext();
       lastUpdateTimeRef.current = timestamp;
     }
     
@@ -98,14 +100,23 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
       cancelAnimationFrame(animationFrameRef.current);
     }
     
-    animationFrameRef.current = requestAnimationFrame(animate);
+    if (isRunning) {
+      animationFrameRef.current = requestAnimationFrame(animate);
+    }
     
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [animate]);
+  }, [animate, isRunning]);
+
+  // Expose step function to parent
+  useEffect(() => {
+    if (onStep) {
+      onStep(computeNext);
+    }
+  }, [onStep, computeNext]);
   
   const canvasSize = gridSize * cellSize;
   
