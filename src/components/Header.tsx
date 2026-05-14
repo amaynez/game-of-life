@@ -20,11 +20,11 @@ const Header: React.FC = () => {
       if (targetId === "patterns") {
         const extraOffset = 30; // Additional offset for the subheading
         const elementPosition = targetElement.getBoundingClientRect().top;
-        offsetPosition = elementPosition + window.pageYOffset - headerHeight - 20 - extraOffset;
+        offsetPosition = elementPosition + window.scrollY - headerHeight - 20 - extraOffset;
       } else {
         // Standard offset for other sections
         const elementPosition = targetElement.getBoundingClientRect().top;
-        offsetPosition = elementPosition + window.pageYOffset - headerHeight - 20;
+        offsetPosition = elementPosition + window.scrollY - headerHeight - 20;
       }
       
       window.scrollTo({
