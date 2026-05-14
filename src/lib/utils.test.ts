@@ -35,4 +35,36 @@ describe("cn utility", () => {
       )
     ).toBe("base-class conditional-true px-4 text-blue-500");
   });
+
+  test("returns empty string when given no arguments", () => {
+    expect(cn()).toBe("");
+  });
+
+  test("returns empty string when all values are falsy", () => {
+    expect(cn(false, null, undefined)).toBe("");
+    expect(cn({ a: false, b: false })).toBe("");
+  });
+
+  test("handles array of class names", () => {
+    expect(cn(["foo", "bar"])).toBe("foo bar");
+  });
+
+  test("handles deeply nested arrays", () => {
+    expect(cn(["foo", ["bar", "baz"]])).toBe("foo bar baz");
+  });
+
+  test("last conflicting tailwind class wins for margin utilities", () => {
+    expect(cn("m-4", "m-2")).toBe("m-2");
+    expect(cn("mt-4", "mt-8")).toBe("mt-8");
+  });
+
+  test("non-conflicting tailwind classes are preserved together", () => {
+    expect(cn("px-2", "py-4")).toBe("px-2 py-4");
+    expect(cn("text-sm", "font-bold")).toBe("text-sm font-bold");
+  });
+
+  test("handles empty string input", () => {
+    expect(cn("", "foo")).toBe("foo");
+    expect(cn("foo", "")).toBe("foo");
+  });
 });
