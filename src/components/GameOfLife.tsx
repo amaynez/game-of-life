@@ -62,12 +62,16 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
   const toggleCell = useCallback((x: number, y: number, forcedState?: boolean) => {
     if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
       setGrid(currentGrid => {
-        const newGrid = [...currentGrid.map(row => [...row])];
+        const oldState = currentGrid[y][x];
+        const newState = forcedState !== undefined ? forcedState : !oldState;
         
-        const newState = forcedState !== undefined ? forcedState : !newGrid[y][x];
+        if (newState === oldState) return currentGrid;
+
+        const newGrid = [...currentGrid];
+        newGrid[y] = [...currentGrid[y]];
         newGrid[y][x] = newState;
         
-        setPopulation(countAlive(newGrid));
+        setPopulation(prev => newState ? prev + 1 : prev - 1);
         
         return newGrid;
       });
