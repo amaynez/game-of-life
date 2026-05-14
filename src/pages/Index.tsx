@@ -57,6 +57,7 @@ const Index = () => {
   const [currentPattern, setCurrentPattern] = useState<boolean[][] | undefined>(undefined);
   const [gridSize, setGridSize] = useState(50);
   const [cellSize, setCellSize] = useState(12);
+  const [manualStepTrigger, setManualStepTrigger] = useState(0);
   
   useEffect(() => {
     toast("Welcome to Conway's Game of Life", {
@@ -103,6 +104,10 @@ const Index = () => {
       description: "Click play to see it evolve!",
     });
   }, []);
+
+  const handleStep = useCallback(() => {
+    setManualStepTrigger(prev => prev + 1);
+  }, []);
   
   return (
     <div className="min-h-screen bg-background">
@@ -117,6 +122,7 @@ const Index = () => {
               initialPattern={currentPattern}
               speed={speed}
               isRunning={isRunning}
+              manualStepTrigger={manualStepTrigger}
             />
           </div>
           
@@ -126,6 +132,7 @@ const Index = () => {
               onToggleRunning={handleToggleRunning}
               onClear={handleClear}
               onRandom={handleRandom}
+              onStep={handleStep}
               onSpeedChange={setSpeed}
               speed={speed}
             />

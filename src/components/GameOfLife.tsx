@@ -10,6 +10,7 @@ interface GameOfLifeProps {
   initialPattern?: boolean[][];
   speed?: number;
   isRunning?: boolean;
+  manualStepTrigger?: number;
 }
 
 const GameOfLife: React.FC<GameOfLifeProps> = ({
@@ -18,6 +19,7 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
   initialPattern,
   speed = 100,
   isRunning = false,
+  manualStepTrigger,
 }) => {
   const [grid, setGrid] = useState<boolean[][]>([]);
   const [generation, setGeneration] = useState(0);
@@ -106,6 +108,13 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
       }
     };
   }, [animate]);
+
+  // Handle manual step
+  useEffect(() => {
+    if (manualStepTrigger !== undefined && manualStepTrigger > 0) {
+      computeNext();
+    }
+  }, [manualStepTrigger, computeNext]);
   
   const canvasSize = gridSize * cellSize;
   
