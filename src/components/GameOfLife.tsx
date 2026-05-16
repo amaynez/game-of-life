@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import GameStats from './game/GameStats';
 import GameGrid from './game/GameGrid';
-import { computeNextGeneration, countAlive } from './game/GameEngine';
+import { computeNextGeneration, countAlive, createEmptyGrid } from './game/GameEngine';
 
 interface GameOfLifeProps {
   gridSize?: number;
@@ -29,9 +29,7 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
   
   // Initialize grid
   useEffect(() => {
-    const initialGrid = Array(gridSize).fill(null).map(() => 
-      Array(gridSize).fill(false)
-    );
+    const initialGrid = createEmptyGrid(gridSize);
     
     if (initialPattern) {
       const offsetX = Math.floor((gridSize - initialPattern.length) / 2);

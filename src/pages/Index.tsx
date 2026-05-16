@@ -5,6 +5,7 @@ import { Info, BookOpen, Grid, Lightbulb } from 'lucide-react';
 
 import Header from '@/components/Header';
 import GameOfLife from '@/components/GameOfLife';
+import { createEmptyGrid, createRandomGrid } from '@/components/game/GameEngine';
 import Controls from '@/components/Controls';
 import Hero from '@/components/Hero';
 import InfoCard from '@/components/InfoCard';
@@ -84,9 +85,7 @@ const Index = () => {
     setIsRunning(false);
     
     // Create empty grid
-    const emptyGrid = Array(gridSize).fill(null).map(() => 
-      Array(gridSize).fill(false)
-    );
+    const emptyGrid = createEmptyGrid(gridSize);
     setCurrentPattern(emptyGrid);
     
     toast("Grid cleared", {
@@ -95,9 +94,7 @@ const Index = () => {
   }, [gridSize]);
   
   const handleRandom = useCallback(() => {
-    const randomGrid = Array(gridSize).fill(null).map(() => 
-      Array(gridSize).fill(false).map(() => Math.random() > 0.85)
-    );
+    const randomGrid = createRandomGrid(gridSize, 0.85);
     setCurrentPattern(randomGrid);
     
     toast("Random pattern generated", {
