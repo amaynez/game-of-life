@@ -22,21 +22,42 @@ const GameGrid: React.FC<GameGridProps> = ({ grid, cellSize, onCellToggle, canva
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
+    const rows = grid.length;
+    const cols = grid[0]?.length || 0;
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    for (let i = 0; i < grid.length; i++) {
-      for (let j = 0; j < grid[i].length; j++) {
+    // Pre-calculate colors and drawing parameters
+    const primaryColor = 'hsl(var(--primary))';
+    const bgColor = 'hsla(var(--background), 0.8)';
+    const strokeColor = 'hsla(var(--primary), 0.05)';
+    const size = cellSize - 1;
+
+    // First pass: Draw all background cells and grid lines
+    ctx.fillStyle = bgColor;
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
         const x = j * cellSize;
         const y = i * cellSize;
         
+        if (!grid[i][j]) {
+          ctx.fillRect(x, y, size, size);
+          ctx.strokeRect(x, y, size, size);
+        }
+      }
+    }
+
+    // Second pass: Draw only alive cells to minimize fillStyle changes
+    ctx.fillStyle = primaryColor;
+    for (let i = 0; i < rows; i++) {
+      for (let j = 0; j < cols; j++) {
         if (grid[i][j]) {
-          ctx.fillStyle = 'hsl(var(--primary))';
-          ctx.fillRect(x, y, cellSize - 1, cellSize - 1);
-        } else {
-          ctx.fillStyle = 'hsla(var(--background), 0.8)';
-          ctx.fillRect(x, y, cellSize - 1, cellSize - 1);
-          ctx.strokeStyle = 'hsla(var(--primary), 0.05)';
-          ctx.strokeRect(x, y, cellSize - 1, cellSize - 1);
+          const x = j * cellSize;
+          const y = i * cellSize;
+          ctx.fillRect(x, y, size, size);
         }
       }
     }

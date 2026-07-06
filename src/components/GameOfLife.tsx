@@ -126,7 +126,7 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
     };
   }, [animate]);
   
-  const canvasSize = gridSize * cellSize;
+  const canvasSize = React.useMemo(() => gridSize * cellSize, [gridSize, cellSize]);
   
   return (
     <div className="glass-panel p-6 rounded-2xl animate-grid-fade-in">

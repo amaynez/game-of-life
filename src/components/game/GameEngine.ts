@@ -8,11 +8,16 @@ export const computeNextGeneration = (grid: boolean[][], gridSize: number): { ne
       let neighbors = 0;
       
       for (let x = -1; x <= 1; x++) {
+        let newI = i + x;
+        if (newI < 0) newI = gridSize - 1;
+        else if (newI >= gridSize) newI = 0;
+
         for (let y = -1; y <= 1; y++) {
           if (x === 0 && y === 0) continue;
           
-          const newI = (i + x + gridSize) % gridSize;
-          const newJ = (j + y + gridSize) % gridSize;
+          let newJ = j + y;
+          if (newJ < 0) newJ = gridSize - 1;
+          else if (newJ >= gridSize) newJ = 0;
           
           if (grid[newI][newJ]) {
             neighbors++;
