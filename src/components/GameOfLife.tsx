@@ -21,9 +21,16 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
   isRunning = false,
   onStep,
 }) => {
-  const [grid, setGrid] = useState<boolean[][]>([]);
-  const [generation, setGeneration] = useState(0);
-  const [population, setPopulation] = useState(0);
+  const [gameState, setGameState] = useState<{
+    grid: boolean[][];
+    generation: number;
+    population: number;
+  }>({
+    grid: [],
+    generation: 0,
+    population: 0,
+  });
+
   const animationFrameRef = useRef<number | null>(null);
   const lastUpdateTimeRef = useRef<number>(0);
   
@@ -45,15 +52,22 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
       }
     }
     
-    setGrid(initialGrid);
-    setGeneration(0);
+    setGameState({
+      grid: initialGrid,
+      population: countAlive(initialGrid),
+      generation: 0,
+    });
   }, [gridSize, initialPattern]);
   
   // Compute next generation
   const computeNext = useCallback(() => {
-    setGrid(currentGrid => {
-      const { newGrid } = computeNextGeneration(currentGrid, gridSize);
-      return newGrid;
+    setGameState(prev => {
+      const { newGrid, aliveCount } = computeNextGeneration(prev.grid, gridSize);
+      return {
+        grid: newGrid,
+        population: aliveCount,
+        generation: prev.generation + 1,
+      };
     });
     setGeneration(gen => gen + 1);
   }, [gridSize]);
@@ -61,15 +75,21 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
   // Toggle cell state
   const toggleCell = useCallback((x: number, y: number, forcedState?: boolean) => {
     if (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
-      setGrid(currentGrid => {
-        const newGrid = [...currentGrid];
-        const newRow = [...newGrid[y]];
+      setGameState(prev => {
+        const oldState = prev.grid[y][x];
+        const newState = forcedState !== undefined ? forcedState : !oldState;
         
-        const newState = forcedState !== undefined ? forcedState : !newRow[x];
-        newRow[x] = newState;
-        newGrid[y] = newRow;
+        if (newState === oldState) return prev;
         
-        return newGrid;
+        const newGrid = [...prev.grid];
+        newGrid[y] = [...prev.grid[y]];
+        newGrid[y][x] = newState;
+        
+        return {
+          ...prev,
+          grid: newGrid,
+          population: newState ? prev.population + 1 : prev.population - 1,
+        };
       });
     }
   }, [gridSize]);
@@ -116,18 +136,13 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
     }
   }, [onStep, computeNext]);
   
-  const canvasSize = gridSize * cellSize;
-  
-  // Update population count when grid changes
-  useEffect(() => {
-    setPopulation(countAlive(grid));
-  }, [grid]);
+  const canvasSize = React.useMemo(() => gridSize * cellSize, [gridSize, cellSize]);
   
   return (
     <div className="glass-panel p-6 rounded-2xl animate-grid-fade-in">
-      <GameStats generation={generation} population={population} />
+      <GameStats generation={gameState.generation} population={gameState.population} />
       <GameGrid 
-        grid={grid}
+        grid={gameState.grid}
         cellSize={cellSize}
         onCellToggle={toggleCell}
         canvasSize={canvasSize}
