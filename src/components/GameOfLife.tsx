@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import GameStats from './game/GameStats';
 import GameGrid from './game/GameGrid';
-import { computeNextGeneration, countAlive } from './game/GameEngine';
+import { computeNextGeneration, countAlive, createEmptyGrid } from './game/GameEngine';
 
 interface GameOfLifeProps {
   gridSize?: number;
@@ -10,6 +10,7 @@ interface GameOfLifeProps {
   initialPattern?: boolean[][];
   speed?: number;
   isRunning?: boolean;
+  onStep?: (fn: () => void) => void;
 }
 
 const GameOfLife: React.FC<GameOfLifeProps> = ({
@@ -18,6 +19,7 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
   initialPattern,
   speed = 100,
   isRunning = false,
+  onStep,
 }) => {
   const [gameState, setGameState] = useState<{
     grid: boolean[][];
@@ -34,9 +36,7 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
   
   // Initialize grid
   useEffect(() => {
-    const initialGrid = Array(gridSize).fill(null).map(() => 
-      Array(gridSize).fill(false)
-    );
+    const initialGrid = createEmptyGrid(gridSize);
     
     if (initialPattern) {
       const offsetX = Math.floor((gridSize - initialPattern.length) / 2);
@@ -69,6 +69,7 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
         generation: prev.generation + 1,
       };
     });
+    setGeneration(gen => gen + 1);
   }, [gridSize]);
   
   // Toggle cell state
@@ -95,6 +96,8 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
   
   // Animation loop
   const animate = useCallback((timestamp: number) => {
+    if (!isRunning) return;
+
     if (!lastUpdateTimeRef.current) {
       lastUpdateTimeRef.current = timestamp;
     }
@@ -102,9 +105,7 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
     const elapsed = timestamp - lastUpdateTimeRef.current;
     
     if (elapsed > speed) {
-      if (isRunning) {
-        computeNext();
-      }
+      computeNext();
       lastUpdateTimeRef.current = timestamp;
     }
     
@@ -117,14 +118,23 @@ const GameOfLife: React.FC<GameOfLifeProps> = ({
       cancelAnimationFrame(animationFrameRef.current);
     }
     
-    animationFrameRef.current = requestAnimationFrame(animate);
+    if (isRunning) {
+      animationFrameRef.current = requestAnimationFrame(animate);
+    }
     
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [animate]);
+  }, [animate, isRunning]);
+
+  // Expose step function to parent
+  useEffect(() => {
+    if (onStep) {
+      onStep(computeNext);
+    }
+  }, [onStep, computeNext]);
   
   const canvasSize = React.useMemo(() => gridSize * cellSize, [gridSize, cellSize]);
   

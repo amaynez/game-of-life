@@ -5,6 +5,7 @@ import { Info, BookOpen, Grid, Lightbulb } from 'lucide-react';
 
 import Header from '@/components/Header';
 import GameOfLife from '@/components/GameOfLife';
+import { createEmptyGrid, createRandomGrid } from '@/components/game/GameEngine';
 import Controls from '@/components/Controls';
 import Hero from '@/components/Hero';
 import InfoCard from '@/components/InfoCard';
@@ -55,6 +56,7 @@ const Index = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [speed, setSpeed] = useState(100);
   const [currentPattern, setCurrentPattern] = useState<boolean[][] | undefined>(undefined);
+  const stepFnRef = React.useRef<(() => void) | null>(null);
   const [gridSize, setGridSize] = useState(50);
   const [cellSize, setCellSize] = useState(12);
   
@@ -68,15 +70,22 @@ const Index = () => {
   const handleToggleRunning = useCallback(() => {
     setIsRunning(prev => !prev);
   }, []);
+
+  const handleStep = useCallback(() => {
+    if (stepFnRef.current) {
+      stepFnRef.current();
+    }
+  }, []);
+
+  const handleSetStepFn = useCallback((fn: () => void) => {
+    stepFnRef.current = fn;
+  }, []);
   
   const handleClear = useCallback(() => {
-    setCurrentPattern(undefined);
     setIsRunning(false);
     
     // Create empty grid
-    const emptyGrid = Array(gridSize).fill(null).map(() => 
-      Array(gridSize).fill(false)
-    );
+    const emptyGrid = createEmptyGrid(gridSize);
     setCurrentPattern(emptyGrid);
     
     toast("Grid cleared", {
@@ -85,9 +94,7 @@ const Index = () => {
   }, [gridSize]);
   
   const handleRandom = useCallback(() => {
-    const randomGrid = Array(gridSize).fill(null).map(() => 
-      Array(gridSize).fill(false).map(() => Math.random() > 0.85)
-    );
+    const randomGrid = createRandomGrid(gridSize, 0.85);
     setCurrentPattern(randomGrid);
     
     toast("Random pattern generated", {
@@ -117,6 +124,7 @@ const Index = () => {
               initialPattern={currentPattern}
               speed={speed}
               isRunning={isRunning}
+              onStep={handleSetStepFn}
             />
           </div>
           
@@ -126,6 +134,7 @@ const Index = () => {
               onToggleRunning={handleToggleRunning}
               onClear={handleClear}
               onRandom={handleRandom}
+              onStep={handleStep}
               onSpeedChange={setSpeed}
               speed={speed}
             />
