@@ -1,12 +1,26 @@
 
 export const createEmptyGrid = (gridSize: number): boolean[][] => {
-  return Array(gridSize).fill(null).map(() => Array(gridSize).fill(false));
+  const grid = new Array(gridSize);
+  for (let i = 0; i < gridSize; i++) {
+    const row = new Array(gridSize);
+    for (let j = 0; j < gridSize; j++) {
+      row[j] = false;
+    }
+    grid[i] = row;
+  }
+  return grid;
 };
 
 export const createRandomGrid = (gridSize: number, probability: number = 0.85): boolean[][] => {
-  return Array(gridSize).fill(null).map(() =>
-    Array(gridSize).fill(false).map(() => Math.random() > probability)
-  );
+  const grid = new Array(gridSize);
+  for (let i = 0; i < gridSize; i++) {
+    const row = new Array(gridSize);
+    for (let j = 0; j < gridSize; j++) {
+      row[j] = Math.random() > probability;
+    }
+    grid[i] = row;
+  }
+  return grid;
 };
 
 export const computeNextGeneration = (grid: boolean[][], gridSize: number): { newGrid: boolean[][], aliveCount: number } => {
